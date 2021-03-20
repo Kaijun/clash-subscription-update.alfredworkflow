@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string></string>
+	<key>connections</key>
+	<dict>
+		<key>0920467E-6E12-47BF-99E6-883CC021C489</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>26265173-97F1-4D57-BDD6-D25B6FEBCAEB</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>19DF3B66-8E06-4EBC-BCBB-10B4579137D5</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>399D2C22-5D5F-499F-803A-3DBB0F558432</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>26265173-97F1-4D57-BDD6-D25B6FEBCAEB</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>19DF3B66-8E06-4EBC-BCBB-10B4579137D5</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>88006FDF-1453-4029-809D-98B4571160D7</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>AF43D43F-BC80-41DB-8863-49FFFF937E7B</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>AF43D43F-BC80-41DB-8863-49FFFF937E7B</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>0920467E-6E12-47BF-99E6-883CC021C489</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string></string>
+	<key>description</key>
+	<string></string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Clash Subscription Update</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>2</integer>
+				<key>fixedorder</key>
+				<true/>
+				<key>items</key>
+				<string>[{"title":"FooCloud","arg":"FooCloud | http:\/\/example.net\/config.yaml"},{"title":"BarCloud","arg":"BarCloud | http:\/\/example.net\/config.yaml"}]</string>
+				<key>runningsubtext</key>
+				<string></string>
+				<key>subtext</key>
+				<string></string>
+				<key>title</key>
+				<string></string>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.listfilter</string>
+			<key>uid</key>
+			<string>AF43D43F-BC80-41DB-8863-49FFFF937E7B</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>lastpathcomponent</key>
+				<false/>
+				<key>onlyshowifquerypopulated</key>
+				<false/>
+				<key>removeextension</key>
+				<false/>
+				<key>text</key>
+				<string>{query}</string>
+				<key>title</key>
+				<string></string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.notification</string>
+			<key>uid</key>
+			<string>399D2C22-5D5F-499F-803A-3DBB0F558432</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>ObjC.import('stdlib');
+
+const CLASH_CONFIG_PATH = `~/.config/clash/`;
+
+const RULES = [
+  '- DOMAIN-SUFFIX,bilibili.com,🎯 全球直连',
+  '- DOMAIN-SUFFIX,docs.qq.com,🚀 节点选择',
+];
+
+const app = Application.currentApplication();
+app.includeStandardAdditions = true;
+
+const title = $.getenv('title');
+const url = $.getenv('url');
+const filePath = `${CLASH_CONFIG_PATH}/${title}.yaml`;
+
+const curlCmd = (url) =&gt; {
+  return `curl -m 15 --fail -L -o ${filePath} '${url}'`;
+}
+
+const sedCmd = (ruleRow) =&gt; {
+  return `sed -i '' '/rules:/a\\
+ ${ruleRow}
+' ${filePath}`;
+}
+
+function run(argv) {
+  try {
+    // Download File
+    const filePath = `~/.config/clash/${title}.yaml`;
+    let ret = app.doShellScript(curlCmd(url));
+    // Replace Rules
+    RULES.reverse().forEach(r =&gt; {
+      app.doShellScript(sedCmd(r));
+    });
+  } catch(e) {
+    console.log('error occured', e);
+    return `${title}\n🚫 订阅更新失败，请重试！`
+  }
+  return `${title}\n🎉 订阅更新成功！`
+}</string>
+				<key>scriptargtype</key>
+				<integer>0</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>7</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>19DF3B66-8E06-4EBC-BCBB-10B4579137D5</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>2</integer>
+				<key>keyword</key>
+				<string>subupdate</string>
+				<key>subtext</key>
+				<string></string>
+				<key>text</key>
+				<string>Update Clash Subscribes</string>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.keyword</string>
+			<key>uid</key>
+			<string>88006FDF-1453-4029-809D-98B4571160D7</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argument</key>
+				<string>{query}</string>
+				<key>passthroughargument</key>
+				<false/>
+				<key>variables</key>
+				<dict>
+					<key>title</key>
+					<string>{var:split1}</string>
+					<key>url</key>
+					<string>{var:split2}</string>
+				</dict>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.utility.argument</string>
+			<key>uid</key>
+			<string>26265173-97F1-4D57-BDD6-D25B6FEBCAEB</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>delimiter</key>
+				<string>|</string>
+				<key>trimarguments</key>
+				<true/>
+				<key>variableprefix</key>
+				<string>split</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.utility.split</string>
+			<key>uid</key>
+			<string>0920467E-6E12-47BF-99E6-883CC021C489</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string></string>
+	<key>uidata</key>
+	<dict>
+		<key>0920467E-6E12-47BF-99E6-883CC021C489</key>
+		<dict>
+			<key>xpos</key>
+			<integer>450</integer>
+			<key>ypos</key>
+			<integer>190</integer>
+		</dict>
+		<key>19DF3B66-8E06-4EBC-BCBB-10B4579137D5</key>
+		<dict>
+			<key>xpos</key>
+			<integer>625</integer>
+			<key>ypos</key>
+			<integer>160</integer>
+		</dict>
+		<key>26265173-97F1-4D57-BDD6-D25B6FEBCAEB</key>
+		<dict>
+			<key>xpos</key>
+			<integer>525</integer>
+			<key>ypos</key>
+			<integer>190</integer>
+		</dict>
+		<key>399D2C22-5D5F-499F-803A-3DBB0F558432</key>
+		<dict>
+			<key>xpos</key>
+			<integer>845</integer>
+			<key>ypos</key>
+			<integer>160</integer>
+		</dict>
+		<key>88006FDF-1453-4029-809D-98B4571160D7</key>
+		<dict>
+			<key>colorindex</key>
+			<integer>4</integer>
+			<key>note</key>
+			<string>1. Add a keyword object by right-clicking the canvas and choosing Inputs &gt; Keyword. Set the keyword and title to show it in Alfred's results.</string>
+			<key>xpos</key>
+			<integer>80</integer>
+			<key>ypos</key>
+			<integer>160</integer>
+		</dict>
+		<key>AF43D43F-BC80-41DB-8863-49FFFF937E7B</key>
+		<dict>
+			<key>xpos</key>
+			<integer>270</integer>
+			<key>ypos</key>
+			<integer>160</integer>
+		</dict>
+	</dict>
+	<key>variablesdontexport</key>
+	<array/>
+	<key>version</key>
+	<string>1.0</string>
+	<key>webaddress</key>
+	<string>https://www.alfredapp.com</string>
+</dict>
+</plist>
